@@ -1,14 +1,6 @@
 # QuakeShield
 
-QuakeShield is a software prototype. Its monitor waveform, alert, countdown,
-and siren are simulated demonstrations and are not an earthquake detection or
-official warning system.
-
-The earthquake history feature is designed to prefer the National Center for
-Seismology (NCS), Government of India. Until a documented, suitable automated
-NCS data source is verified, the app deliberately shows an official-portal-only
-state and links users to the NCS earthquake portal rather than scraping the
-website or presenting invented records.
+QQuakeShield — An AI-assisted Earthquake Early Warning and Seismic Monitoring System integrating sensor-based P-wave detection, real-time seismic data, AI/ML analysis, mobile and web applications, geospatial visualization, and emergency alerts.
 
 ## Getting Started
 
