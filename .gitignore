@@ -1,0 +1,34 @@
+﻿# Flutter and Dart
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Android local configuration and signing secrets
+android/local.properties
+android/key.properties
+android/*.jks
+android/*.keystore
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local project backup archives
+quakeshield_pre_history_*.zip
+
+# Kotlin and Gradle generated files
+android/.kotlin/
+.gradle/
