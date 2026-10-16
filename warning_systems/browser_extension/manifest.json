@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "QuakeShield — Earthquake Monitoring",
+  "description": "Research prototype for location-based earthquake monitoring alerts.",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "QuakeShield",
+    "default_popup": "src/popup/popup.html"
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  "options_page": "src/settings/settings.html",
+  "permissions": [
+    "storage",
+    "alarms",
+    "notifications",
+    "geolocation",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://earthquake.usgs.gov/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/quake-logo.svg"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuakeShield Settings</title>
+    <link rel="stylesheet" href="settings.css" />
+  </head>
+  <body>
+    <main class="settings-shell">
+      <header>
+        <h1>QuakeShield Extension Settings</h1>
+        <p>Research prototype. Configure alert behavior, data sources, and website overlays.</p>
+        <p class="hint">Backend integration status: live QuakeShield event API is pending. Configure endpoint when available.</p>
+      </header>
+
+      <section class="panel">
+        <h2>Alert Thresholds</h2>
+        <label>Distance threshold (km) <input id="distanceThresholdKm" type="number" min="1" /></label>
+        <label>Magnitude threshold <input id="magnitudeThreshold" type="number" min="0" step="0.1" /></label>
+        <label>Polling interval (seconds) <input id="pollingIntervalSeconds" type="number" min="30" /></label>
+        <label>Stale after (minutes) <input id="staleAfterMinutes" type="number" min="1" /></label>
+        <label>Ignore events older than (minutes) <input id="maxEventAgeMinutes" type="number" min="1" /></label>
+      </section>
+
+      <section class="panel">
+        <h2>Location & Privacy</h2>
+        <label>Location mode
+          <select id="locationMode">
+            <option value="none">None</option>
+            <option value="manual">Manual</option>
+            <option value="geolocation">Browser geolocation</option>
+          </select>
+        </label>
+        <label>City / region name <input id="locationCity" type="text" /></label>
+        <label>Latitude (optional) <input id="locationLatitude" type="number" step="0.00001" /></label>
+        <label>Longitude (optional) <input id="locationLongitude" type="number" step="0.00001" /></label>
+        <p class="hint">Precise coordinates remain local and are never transmitted by this extension for filtering.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Data Sources</h2>
+        <label><input id="sourceQuakeShieldEnabled" type="checkbox" /> Enable QuakeShield backend source</label>
+        <label>QuakeShield events URL <input id="sourceQuakeShieldEventsUrl" type="url" placeholder="https://..." /></label>
+        <label>QuakeShield API key (optional) <input id="sourceQuakeShieldApiKey" type="password" /></label>
+
+        <label><input id="sourceOfficialEnabled" type="checkbox" /> Enable official earthquake source</label>
+        <label>Official feed URL <input id="sourceOfficialFeedUrl" type="url" /></label>
+
+        <label><input id="sourceMockEnabled" type="checkbox" /> Enable TEST MODE mock source</label>
+        <p class="hint">TEST MODE generates simulated alerts and must never be treated as real emergencies.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Notifications</h2>
+        <label><input id="notificationsEnabled" type="checkbox" /> Browser notifications enabled</label>
+        <label><input id="notificationsPlaySound" type="checkbox" /> Request notification sound (browser-dependent)</label>
+        <label><input id="notificationsAllowPreliminary" type="checkbox" /> Notify preliminary detections</label>
+        <label><input id="notificationsAllowReports" type="checkbox" /> Notify confirmed reports</label>
+        <label><input id="notificationsAllowEarlyWarnings" type="checkbox" /> Notify early-warning events</label>
+        <label><input id="notificationsIncludeTestMode" type="checkbox" /> Notify TEST MODE events</label>
+      </section>
+
+      <section class="panel">
+        <h2>Website Overlay</h2>
+        <label><input id="overlayEnabled" type="checkbox" /> Enable warning overlay on selected sites</label>
+        <label>Allowed site hosts (one per line; supports *.example.com)
+          <textarea id="overlayAllowedSites" rows="6" placeholder="example.com&#10;*.example.org"></textarea>
+        </label>
+      </section>
+
+      <section class="panel">
+        <h2>Links</h2>
+        <label>QuakeShield dashboard URL <input id="dashboardUrl" type="url" placeholder="https://..." /></label>
+      </section>
+
+      <div class="actions">
+        <button id="saveBtn">Save Settings</button>
+        <span id="saveStatus"></span>
+      </div>
+    </main>
+    <script type="module" src="settings.js"></script>
+  </body>
+</html>

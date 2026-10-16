@@ -1,0 +1,82 @@
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: #020617;
+  color: #f8fafc;
+  font-family: Inter, "Segoe UI", sans-serif;
+}
+
+.settings-shell {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+header p {
+  margin-top: 6px;
+  color: #94a3b8;
+}
+
+.panel {
+  background: #0f172a;
+  border: 1px solid #263447;
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.panel h2 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+input,
+select,
+textarea,
+button {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #020617;
+  color: #f8fafc;
+  padding: 10px;
+}
+
+.hint {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+button {
+  background: #1d4ed8;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+#saveStatus {
+  color: #22c55e;
+  font-size: 13px;
+}

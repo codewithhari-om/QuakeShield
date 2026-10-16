@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuakeShield</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <header class="topbar">
+        <div class="brand">
+          <img src="../../assets/quake-logo.svg" alt="QuakeShield" class="brand-logo" />
+          <div>
+            <h1>QuakeShield</h1>
+            <p>Earthquake Monitoring Prototype</p>
+          </div>
+        </div>
+        <button id="openSettings" class="icon-btn" aria-label="Open settings">⚙</button>
+      </header>
+
+      <section class="card location-card">
+        <div class="card-head">
+          <strong>Location</strong>
+          <span id="locationPermission" class="badge">Permission: prompt</span>
+        </div>
+        <p id="locationValue">No location selected</p>
+        <p class="subtle">Coordinates are stored locally and used only for local filtering.</p>
+        <div class="row">
+          <button id="useGeolocation" class="btn">Use Browser Location</button>
+          <button id="clearLocation" class="btn ghost">Clear</button>
+        </div>
+        <form id="manualLocationForm" class="manual-form">
+          <input id="manualCity" placeholder="City / Area name" required />
+          <div class="row compact">
+            <input id="manualLat" placeholder="Latitude (optional)" inputmode="decimal" />
+            <input id="manualLon" placeholder="Longitude (optional)" inputmode="decimal" />
+          </div>
+          <button class="btn" type="submit">Save Manual Location</button>
+          <p id="locationFormError" class="error-text" hidden></p>
+        </form>
+      </section>
+
+      <section id="statusCard" class="card status-card">
+        <div class="status-title">
+          <span id="statusBadge" class="status-badge">STATUS UNKNOWN</span>
+          <span id="lastUpdate" class="subtle">Last update: --</span>
+        </div>
+        <p id="statusMessage">Loading current monitoring status...</p>
+      </section>
+
+      <section id="eventCard" class="card" hidden>
+        <h2>Latest Relevant Event</h2>
+        <dl class="event-grid">
+          <div><dt>Magnitude</dt><dd id="eventMag">--</dd></div>
+          <div><dt>Location</dt><dd id="eventLoc">--</dd></div>
+          <div><dt>Distance</dt><dd id="eventDistance">--</dd></div>
+          <div><dt>Status Type</dt><dd id="eventType">--</dd></div>
+          <div><dt>Timestamp</dt><dd id="eventTime">--</dd></div>
+          <div><dt>Source</dt><dd id="eventSource">--</dd></div>
+          <div id="warningLeadWrap" hidden><dt>Warning ETA</dt><dd id="warningLead">--</dd></div>
+        </dl>
+      </section>
+
+      <section class="card source-card">
+        <h2>Data Sources</h2>
+        <ul id="sourceList"></ul>
+      </section>
+
+      <section class="card quick-actions">
+        <h2>Quick Actions</h2>
+        <div class="row wrap">
+          <button id="changeLocation" class="btn ghost">Change Location</button>
+          <button id="refreshState" class="btn ghost">Refresh</button>
+          <button id="viewDetails" class="btn ghost">View Event Details</button>
+          <button id="openDashboard" class="btn ghost">Open QuakeShield Dashboard</button>
+          <button id="toggleOverlay" class="btn ghost">Toggle Overlay</button>
+          <button id="openPreferences" class="btn ghost">Alert Preferences</button>
+        </div>
+      </section>
+
+      <footer class="footer-note">
+        Research prototype. Do not rely on this extension instead of official emergency alerts.
+      </footer>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

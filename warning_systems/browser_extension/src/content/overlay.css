@@ -1,0 +1,67 @@
+#qs-overlay-root {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  max-width: min(420px, calc(100vw - 32px));
+  z-index: 2147483647;
+  font-family: Inter, "Segoe UI", sans-serif;
+  color: #f8fafc;
+  pointer-events: auto;
+}
+
+#qs-overlay-root[hidden] {
+  display: none !important;
+}
+
+.qs-overlay-panel {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-left: 4px solid #f97316;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(2, 6, 23, 0.45);
+  padding: 14px;
+}
+
+.qs-overlay-panel.status-TEST_MODE {
+  border-left-color: #fbbf24;
+}
+
+.qs-overlay-panel.status-EARTHQUAKE_ALERT {
+  border-left-color: #ef4444;
+}
+
+.qs-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.qs-overlay-title {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+.qs-overlay-meta,
+.qs-overlay-summary {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.qs-overlay-dismiss {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.qs-overlay-warning {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #fde68a;
+}
