@@ -13,7 +13,7 @@
           <img src="../../assets/quake-logo.svg" alt="QuakeShield" class="brand-logo" />
           <div>
             <h1>QuakeShield</h1>
-            <p>Earthquake Early Warning & Monitoring</p>
+            <p>Earthquake Monitoring Prototype</p>
           </div>
         </div>
         <button id="openSettings" class="icon-btn" aria-label="Open settings">⚙</button>
@@ -25,6 +25,7 @@
           <span id="locationPermission" class="badge">Permission: prompt</span>
         </div>
         <p id="locationValue">No location selected</p>
+        <p class="subtle">Coordinates are stored locally and used only for local filtering.</p>
         <div class="row">
           <button id="useGeolocation" class="btn">Use Browser Location</button>
           <button id="clearLocation" class="btn ghost">Clear</button>
@@ -32,10 +33,11 @@
         <form id="manualLocationForm" class="manual-form">
           <input id="manualCity" placeholder="City / Area name" required />
           <div class="row compact">
-            <input id="manualLat" placeholder="Latitude (optional)" />
-            <input id="manualLon" placeholder="Longitude (optional)" />
+            <input id="manualLat" placeholder="Latitude (optional)" inputmode="decimal" />
+            <input id="manualLon" placeholder="Longitude (optional)" inputmode="decimal" />
           </div>
           <button class="btn" type="submit">Save Manual Location</button>
+          <p id="locationFormError" class="error-text" hidden></p>
         </form>
       </section>
 
@@ -53,7 +55,7 @@
           <div><dt>Magnitude</dt><dd id="eventMag">--</dd></div>
           <div><dt>Location</dt><dd id="eventLoc">--</dd></div>
           <div><dt>Distance</dt><dd id="eventDistance">--</dd></div>
-          <div><dt>Type</dt><dd id="eventType">--</dd></div>
+          <div><dt>Status Type</dt><dd id="eventType">--</dd></div>
           <div><dt>Timestamp</dt><dd id="eventTime">--</dd></div>
           <div><dt>Source</dt><dd id="eventSource">--</dd></div>
           <div id="warningLeadWrap" hidden><dt>Warning ETA</dt><dd id="warningLead">--</dd></div>
@@ -71,7 +73,7 @@
           <button id="changeLocation" class="btn ghost">Change Location</button>
           <button id="refreshState" class="btn ghost">Refresh</button>
           <button id="viewDetails" class="btn ghost">View Event Details</button>
-          <button id="openDashboard" class="btn ghost">Open Dashboard</button>
+          <button id="openDashboard" class="btn ghost">Open QuakeShield Dashboard</button>
           <button id="toggleOverlay" class="btn ghost">Toggle Overlay</button>
           <button id="openPreferences" class="btn ghost">Alert Preferences</button>
         </div>

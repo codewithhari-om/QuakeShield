@@ -1,5 +1,6 @@
 import { STATUS } from '../shared/config.js';
 import { getSettings, saveSettings } from '../shared/storage.js';
+import { formatDate, formatSourceStatus, getStatusPresentation } from '../shared/presentation.js';
 
 const ui = {
   openSettings: document.getElementById('openSettings'),
@@ -10,6 +11,7 @@ const ui = {
   manualCity: document.getElementById('manualCity'),
   manualLat: document.getElementById('manualLat'),
   manualLon: document.getElementById('manualLon'),
+  locationFormError: document.getElementById('locationFormError'),
   changeLocation: document.getElementById('changeLocation'),
   refreshState: document.getElementById('refreshState'),
   viewDetails: document.getElementById('viewDetails'),
@@ -36,53 +38,25 @@ const ui = {
 let currentState = null;
 let settings = null;
 
-function labelFromStatus(status) {
-  switch (status) {
-    case STATUS.allClear:
-      return 'ALL CLEAR';
-    case STATUS.watch:
-      return 'WATCH';
-    case STATUS.alert:
-      return 'EARTHQUAKE ALERT';
-    case STATUS.test:
-      return 'TEST MODE';
-    default:
-      return 'DATA UNAVAILABLE';
+function formatLocation(settingsLocation) {
+  if (settingsLocation.mode === 'geolocation' && settingsLocation.city) {
+    return `${settingsLocation.city} (browser location)`;
   }
+  if (settingsLocation.mode === 'manual' && settingsLocation.city) {
+    return `${settingsLocation.city} (manual)`;
+  }
+  return 'No location selected';
 }
 
-function statusClass(status) {
-  switch (status) {
-    case STATUS.allClear:
-      return 'ok';
-    case STATUS.watch:
-      return 'watch';
-    case STATUS.alert:
-      return 'alert';
-    case STATUS.test:
-      return 'test';
-    default:
-      return 'unknown';
-  }
-}
-
-function formatDate(value) {
-  if (!value) return '--';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '--';
-  return date.toLocaleString();
+function hasLocationConfigured(location) {
+  return Boolean(location?.city) || (typeof location?.latitude === 'number' && typeof location?.longitude === 'number');
 }
 
 function renderLocation() {
   const location = settings.location;
   ui.locationPermission.textContent = `Permission: ${location.permission}`;
-  if (location.mode === 'geolocation' && location.city) {
-    ui.locationValue.textContent = `${location.city} (browser location)`;
-  } else if (location.mode === 'manual' && location.city) {
-    ui.locationValue.textContent = `${location.city} (manual)`;
-  } else {
-    ui.locationValue.textContent = 'No location selected';
-  }
+  ui.locationValue.textContent = formatLocation(location);
+  ui.toggleOverlay.textContent = settings.overlay.enabled ? 'Disable Overlay' : 'Enable Overlay';
 }
 
 function renderSources(sources = {}) {
@@ -99,7 +73,7 @@ function renderSources(sources = {}) {
     li.className = 'source-row';
     li.innerHTML = `
       <span>${label}</span>
-      <span>${source.status || 'unknown'}${source.stale ? ' (stale)' : ''}</span>
+      <span class="source-health">${formatSourceStatus(source)}</span>
     `;
     ui.sourceList.appendChild(li);
   }
@@ -121,7 +95,7 @@ function renderEvent(event, status) {
 
   if (status === STATUS.alert && Number.isFinite(event.warningLeadSeconds) && event.warningLeadSeconds > 0) {
     ui.warningLeadWrap.hidden = false;
-    ui.warningLead.textContent = `${event.warningLeadSeconds}s (from backend)`;
+    ui.warningLead.textContent = `${event.warningLeadSeconds}s (backend-provided estimate)`;
   } else {
     ui.warningLeadWrap.hidden = true;
     ui.warningLead.textContent = '--';
@@ -131,25 +105,18 @@ function renderEvent(event, status) {
 function renderStatus(state) {
   const status = state?.status || STATUS.unknown;
   ui.statusCard.classList.remove('watch', 'alert', 'unknown', 'test');
-  const css = statusClass(status);
-  if (css !== 'ok') {
-    ui.statusCard.classList.add(css);
+
+  const presentation = getStatusPresentation(status, {
+    hasLocation: hasLocationConfigured(settings.location)
+  });
+
+  if (presentation.tone !== 'ok') {
+    ui.statusCard.classList.add(presentation.tone);
   }
 
-  ui.statusBadge.textContent = labelFromStatus(status);
+  ui.statusBadge.textContent = presentation.label;
   ui.lastUpdate.textContent = `Last update: ${formatDate(state?.lastSuccessfulUpdate || state?.generatedAt)}`;
-
-  if (status === STATUS.allClear) {
-    ui.statusMessage.textContent = 'No relevant active alert is currently known.';
-  } else if (status === STATUS.watch) {
-    ui.statusMessage.textContent = 'Potential relevant event detected. Monitor updates closely.';
-  } else if (status === STATUS.alert) {
-    ui.statusMessage.textContent = 'Validated alert criteria met for your configured area.';
-  } else if (status === STATUS.test) {
-    ui.statusMessage.textContent = 'TEST MODE is active. Alerts are simulated only.';
-  } else {
-    ui.statusMessage.textContent = 'Latest status cannot be verified. Data may be stale or unavailable.';
-  }
+  ui.statusMessage.textContent = presentation.message;
 
   renderEvent(state?.focusedEvent || null, status);
   renderSources(state?.sources || {});
@@ -168,10 +135,15 @@ async function forceRefresh() {
 }
 
 async function requestGeolocation() {
-  if (!navigator.geolocation) return;
+  if (!navigator.geolocation) {
+    ui.locationFormError.hidden = false;
+    ui.locationFormError.textContent = 'Geolocation is not available in this environment.';
+    return;
+  }
 
   navigator.geolocation.getCurrentPosition(
     async (position) => {
+      ui.locationFormError.hidden = true;
       const next = {
         location: {
           ...settings.location,
@@ -188,6 +160,8 @@ async function requestGeolocation() {
     },
     async () => {
       settings = await saveSettings({ location: { ...settings.location, permission: 'denied' } });
+      ui.locationFormError.hidden = false;
+      ui.locationFormError.textContent = 'Location permission denied. Use manual location entry instead.';
       renderLocation();
     },
     { enableHighAccuracy: false, timeout: 7000, maximumAge: 300000 }
@@ -197,18 +171,33 @@ async function requestGeolocation() {
 async function saveManualLocation(event) {
   event.preventDefault();
   const city = ui.manualCity.value.trim();
-  if (!city) return;
+  const latRaw = ui.manualLat.value.trim();
+  const lonRaw = ui.manualLon.value.trim();
 
-  const lat = Number(ui.manualLat.value);
-  const lon = Number(ui.manualLon.value);
-  const hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
+  if (!city) {
+    ui.locationFormError.hidden = false;
+    ui.locationFormError.textContent = 'Please provide a city or area name.';
+    return;
+  }
 
+  const lat = latRaw === '' ? null : Number(latRaw);
+  const lon = lonRaw === '' ? null : Number(lonRaw);
+  const bothEmpty = latRaw === '' && lonRaw === '';
+  const bothProvided = Number.isFinite(lat) && Number.isFinite(lon);
+
+  if (!bothEmpty && !bothProvided) {
+    ui.locationFormError.hidden = false;
+    ui.locationFormError.textContent = 'Latitude and longitude must both be valid numbers, or both left blank.';
+    return;
+  }
+
+  ui.locationFormError.hidden = true;
   settings = await saveSettings({
     location: {
       mode: 'manual',
       city,
-      latitude: hasCoords ? lat : null,
-      longitude: hasCoords ? lon : null,
+      latitude: bothProvided ? lat : null,
+      longitude: bothProvided ? lon : null,
       permission: settings.location.permission || 'prompt'
     }
   });
@@ -219,6 +208,7 @@ async function saveManualLocation(event) {
 }
 
 async function clearLocation() {
+  ui.locationFormError.hidden = true;
   settings = await saveSettings({
     location: {
       mode: 'none',
@@ -235,6 +225,7 @@ async function clearLocation() {
 async function toggleOverlay() {
   const enabled = !settings.overlay.enabled;
   settings = await saveSettings({ overlay: { ...settings.overlay, enabled } });
+  renderLocation();
   await forceRefresh();
 }
 
@@ -252,9 +243,9 @@ function openDashboard() {
 }
 
 function openEventDetails() {
-  if (currentState?.focusedEvent?.url) {
-    chrome.tabs.create({ url: currentState.focusedEvent.url });
-  }
+  const eventId = currentState?.focusedEvent?.id;
+  const detailsUrl = chrome.runtime.getURL(`src/popup/event-details.html${eventId ? `?eventId=${encodeURIComponent(eventId)}` : ''}`);
+  chrome.tabs.create({ url: detailsUrl });
 }
 
 async function init() {

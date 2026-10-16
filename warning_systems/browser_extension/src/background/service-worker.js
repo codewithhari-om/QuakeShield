@@ -11,6 +11,7 @@ import {
 } from '../shared/storage.js';
 import { deriveStatus, filterFreshEvents, mergeDuplicateEvents, scoreEventRelevance } from '../shared/events.js';
 import { isStale } from '../shared/time.js';
+import { notificationDescriptorForEvent, notificationTitleForEvent } from '../shared/presentation.js';
 
 const POLL_ALARM = 'qs_poll_alarm';
 
@@ -57,6 +58,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     sendResponse({ ok: false, error: 'Unsupported message' });
   })().catch((error) => sendResponse({ ok: false, error: String(error?.message || error) }));
   return true;
+});
+
+chrome.notifications.onClicked.addListener(async (notificationId) => {
+  const detailsUrl = chrome.runtime.getURL(`src/popup/event-details.html?eventId=${encodeURIComponent(notificationId)}`);
+  await chrome.tabs.create({ url: detailsUrl });
 });
 
 async function schedulePolling(seconds) {
@@ -146,18 +152,12 @@ async function notifyForEvent(state, settings) {
   const permission = await chrome.notifications.getPermissionLevel();
   if (permission !== 'granted') return;
 
-  const title = event.isTest
-    ? 'QuakeShield TEST MODE Alert'
-    : event.sourceType === 'EARLY_WARNING'
-      ? 'QuakeShield EARLY WARNING'
-      : event.sourceType === 'PRELIMINARY_DETECTION'
-        ? 'QuakeShield Preliminary Detection'
-        : 'QuakeShield Earthquake Report';
-
+  const title = notificationTitleForEvent(event);
+  const descriptor = notificationDescriptorForEvent(event);
   const magnitudeLabel = event.magnitude === null ? 'Magnitude unavailable' : `M${event.magnitude.toFixed(1)}`;
   const area = event.locationName || 'Unknown area';
   const source = event.source;
-  const body = `${magnitudeLabel} • ${area}\nSource: ${source} • ${new Date(event.occurredAt || Date.now()).toLocaleString()}`;
+  const body = `${descriptor}\n${magnitudeLabel} • ${area}\nSource: ${source} • ${new Date(event.occurredAt || Date.now()).toLocaleString()}`;
 
   try {
     await chrome.notifications.create(event.id, {

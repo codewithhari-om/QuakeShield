@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuakeShield Event Details</title>
+    <link rel="stylesheet" href="event-details.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="panel">
+        <h1>QuakeShield Event Details</h1>
+        <p id="stateSummary">Loading latest extension state…</p>
+      </header>
+
+      <section class="panel" id="eventPanel" hidden>
+        <h2>Selected Event</h2>
+        <dl class="grid">
+          <div><dt>Status Type</dt><dd id="eventType">--</dd></div>
+          <div><dt>Magnitude</dt><dd id="eventMagnitude">--</dd></div>
+          <div><dt>Location</dt><dd id="eventLocation">--</dd></div>
+          <div><dt>Distance</dt><dd id="eventDistance">--</dd></div>
+          <div><dt>Occurred</dt><dd id="eventOccurred">--</dd></div>
+          <div><dt>Updated</dt><dd id="eventUpdated">--</dd></div>
+          <div><dt>Source</dt><dd id="eventSource">--</dd></div>
+          <div><dt>Warning ETA</dt><dd id="eventLead">--</dd></div>
+        </dl>
+        <p id="eventLimitNote" class="hint"></p>
+        <a id="eventExternalLink" class="link" target="_blank" rel="noopener" hidden>Open source event page</a>
+      </section>
+
+      <section class="panel">
+        <h2>Safety and Integration Notes</h2>
+        <ul>
+          <li>This extension is a research prototype and must not replace official emergency alerts.</li>
+          <li>QuakeShield backend live alert integration is pending until backend API contract and endpoint are finalized.</li>
+          <li>TEST MODE events are explicitly simulated and not real emergencies.</li>
+        </ul>
+      </section>
+    </main>
+    <script type="module" src="event-details.js"></script>
+  </body>
+</html>

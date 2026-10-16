@@ -14,7 +14,7 @@ body {
 }
 
 .popup {
-  width: 384px;
+  width: 390px;
   padding: 14px;
   display: grid;
   gap: 12px;
@@ -139,6 +139,11 @@ p {
   font-size: 11px;
 }
 
+.error-text {
+  color: #fca5a5;
+  font-size: 11px;
+}
+
 .status-title {
   display: flex;
   justify-content: space-between;
@@ -202,6 +207,10 @@ p {
   display: flex;
   justify-content: space-between;
   gap: 10px;
+}
+
+.source-row .source-health {
+  font-weight: 600;
 }
 
 .footer-note {

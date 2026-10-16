@@ -1,4 +1,5 @@
 const ROOT_ID = 'qs-overlay-root';
+let dismissedEventId = null;
 
 function ensureRoot() {
   let root = document.getElementById(ROOT_ID);
@@ -21,11 +22,17 @@ function hideOverlay() {
 function renderOverlay(payload) {
   const root = ensureRoot();
   if (!payload?.shouldShow || !payload.event) {
+    dismissedEventId = null;
     hideOverlay();
     return;
   }
 
   const event = payload.event;
+  if (dismissedEventId && dismissedEventId === event.id) {
+    root.hidden = true;
+    return;
+  }
+
   const magnitude = event.magnitude === null ? 'Magnitude unavailable' : `M${Number(event.magnitude).toFixed(1)}`;
 
   root.innerHTML = `
@@ -41,6 +48,7 @@ function renderOverlay(payload) {
   `;
 
   root.querySelector('.qs-overlay-dismiss')?.addEventListener('click', () => {
+    dismissedEventId = event.id;
     root.hidden = true;
   });
 

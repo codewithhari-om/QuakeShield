@@ -18,11 +18,17 @@ Core modules:
   - `quakeshield-adapter.js` (configurable backend URL)
   - `usgs-adapter.js` (official earthquake report feed adapter)
   - `mock-adapter.js` (explicit **TEST MODE**)
-- `src/shared/`: settings, storage, geo calculations, event normalization/filtering.
-- `src/popup/`: primary monitoring UI.
+- `src/shared/`: settings, storage, geo calculations, event normalization/filtering, UI/status presentation helpers.
+- `src/popup/`: popup UI and `event-details` page.
 - `src/settings/`: extension settings and consent/configuration controls.
 - `src/content/`: website warning overlay script + style.
-- `tests/events.test.js`: unit tests for normalization, dedup, filtering, stale-status logic.
+- `tests/*.test.js`: unit tests for normalization, dedup, filtering, stale-status logic, adapters, and UI state mapping.
+
+## Current integration status
+
+- The QuakeShield backend adapter is intentionally modular and configurable.
+- **Live backend-triggered earthquake integration is not assumed complete** until backend endpoint + schema are finalized.
+- TEST MODE should be used to verify full UX flow (popup, details page, notification wording, overlay behavior).
 
 ## Installation (unpacked)
 
@@ -75,7 +81,7 @@ See `.env.example` for configuration keys.
 
 - Handles network errors and unavailable sources.
 - Marks source staleness with configurable stale threshold.
-- Prevents `ALL CLEAR` when all sources are stale/unavailable (shows data unavailable).
+- Prevents stale/unavailable data from being shown as all clear.
 - Filters stale events using configurable max age window.
 
 ## Testing
@@ -94,6 +100,8 @@ Covers:
 - location-based relevance
 - stale-event filtering
 - stale-source status behavior
+- adapter error/response handling
+- UI status and notification wording mappings
 
 ## Current backend API requirements not satisfied in this repository
 

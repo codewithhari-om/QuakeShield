@@ -70,76 +70,113 @@ function fillForm() {
   fields.dashboardUrl.value = settings.links.dashboardUrl || '';
 }
 
+function validateUrlField(label, value, requiredWhenEnabled = false) {
+  if (!value) {
+    if (requiredWhenEnabled) {
+      throw new Error(`${label} is required when this source is enabled.`);
+    }
+    return;
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(`${label} must be a valid URL.`);
+  }
+
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(`${label} must use http or https.`);
+  }
+}
+
 async function requestOptionalOriginsIfNeeded(nextSettings) {
   const backendUrl = nextSettings.sources.quakeShield.eventsUrl;
   if (!backendUrl) return;
 
-  let origin;
-  try {
-    const parsed = new URL(backendUrl);
-    origin = `${parsed.protocol}//${parsed.host}/*`;
-  } catch {
-    return;
-  }
+  const parsed = new URL(backendUrl);
+  const origin = `${parsed.protocol}//${parsed.host}/*`;
 
   const currentOrigins = await chrome.permissions.getAll();
   if (currentOrigins.origins?.includes(origin)) return;
-  await chrome.permissions.request({ origins: [origin] });
+
+  const granted = await chrome.permissions.request({ origins: [origin] });
+  if (!granted) {
+    throw new Error('Backend host permission was not granted. Requests to backend may fail until granted.');
+  }
 }
 
 async function save() {
-  const nextSettings = {
-    distanceThresholdKm: Math.max(1, Number(fields.distanceThresholdKm.value || 300)),
-    magnitudeThreshold: Math.max(0, Number(fields.magnitudeThreshold.value || 0)),
-    pollingIntervalSeconds: Math.max(30, Number(fields.pollingIntervalSeconds.value || 120)),
-    staleAfterMinutes: Math.max(1, Number(fields.staleAfterMinutes.value || 10)),
-    maxEventAgeMinutes: Math.max(1, Number(fields.maxEventAgeMinutes.value || 120)),
-    location: {
-      mode: fields.locationMode.value,
-      city: fields.locationCity.value.trim(),
-      latitude: parseOptionalNumber(fields.locationLatitude.value),
-      longitude: parseOptionalNumber(fields.locationLongitude.value),
-      permission: settings.location.permission || 'prompt'
-    },
-    sources: {
-      quakeShield: {
-        ...settings.sources.quakeShield,
-        enabled: fields.sourceQuakeShieldEnabled.checked,
-        eventsUrl: fields.sourceQuakeShieldEventsUrl.value.trim(),
-        apiKey: fields.sourceQuakeShieldApiKey.value.trim()
+  try {
+    const nextSettings = {
+      distanceThresholdKm: Math.max(1, Number(fields.distanceThresholdKm.value || 300)),
+      magnitudeThreshold: Math.max(0, Number(fields.magnitudeThreshold.value || 0)),
+      pollingIntervalSeconds: Math.max(30, Number(fields.pollingIntervalSeconds.value || 120)),
+      staleAfterMinutes: Math.max(1, Number(fields.staleAfterMinutes.value || 10)),
+      maxEventAgeMinutes: Math.max(1, Number(fields.maxEventAgeMinutes.value || 120)),
+      location: {
+        mode: fields.locationMode.value,
+        city: fields.locationCity.value.trim(),
+        latitude: parseOptionalNumber(fields.locationLatitude.value),
+        longitude: parseOptionalNumber(fields.locationLongitude.value),
+        permission: settings.location.permission || 'prompt'
       },
-      official: {
-        ...settings.sources.official,
-        enabled: fields.sourceOfficialEnabled.checked,
-        feedUrl: fields.sourceOfficialFeedUrl.value.trim()
+      sources: {
+        quakeShield: {
+          ...settings.sources.quakeShield,
+          enabled: fields.sourceQuakeShieldEnabled.checked,
+          eventsUrl: fields.sourceQuakeShieldEventsUrl.value.trim(),
+          apiKey: fields.sourceQuakeShieldApiKey.value.trim()
+        },
+        official: {
+          ...settings.sources.official,
+          enabled: fields.sourceOfficialEnabled.checked,
+          feedUrl: fields.sourceOfficialFeedUrl.value.trim()
+        },
+        mock: {
+          enabled: fields.sourceMockEnabled.checked
+        }
       },
-      mock: {
-        enabled: fields.sourceMockEnabled.checked
+      notifications: {
+        enabled: fields.notificationsEnabled.checked,
+        playSound: fields.notificationsPlaySound.checked,
+        allowPreliminary: fields.notificationsAllowPreliminary.checked,
+        allowReports: fields.notificationsAllowReports.checked,
+        allowEarlyWarnings: fields.notificationsAllowEarlyWarnings.checked,
+        includeTestMode: fields.notificationsIncludeTestMode.checked
+      },
+      overlay: {
+        enabled: fields.overlayEnabled.checked,
+        allowedSites: fields.overlayAllowedSites.value
+          .split('\n')
+          .map((line) => line.trim().toLowerCase())
+          .filter(Boolean)
+      },
+      links: {
+        dashboardUrl: fields.dashboardUrl.value.trim()
       }
-    },
-    notifications: {
-      enabled: fields.notificationsEnabled.checked,
-      playSound: fields.notificationsPlaySound.checked,
-      allowPreliminary: fields.notificationsAllowPreliminary.checked,
-      allowReports: fields.notificationsAllowReports.checked,
-      allowEarlyWarnings: fields.notificationsAllowEarlyWarnings.checked,
-      includeTestMode: fields.notificationsIncludeTestMode.checked
-    },
-    overlay: {
-      enabled: fields.overlayEnabled.checked,
-      allowedSites: fields.overlayAllowedSites.value
-        .split('\n')
-        .map((line) => line.trim().toLowerCase())
-        .filter(Boolean)
-    },
-    links: {
-      dashboardUrl: fields.dashboardUrl.value.trim()
-    }
-  };
+    };
 
-  await requestOptionalOriginsIfNeeded(nextSettings);
-  settings = await saveSettings(nextSettings);
-  fields.saveStatus.textContent = `Saved ${new Date().toLocaleTimeString()}`;
+    const hasPartialCoordinates =
+      (nextSettings.location.latitude !== null && nextSettings.location.longitude === null) ||
+      (nextSettings.location.latitude === null && nextSettings.location.longitude !== null);
+
+    if (hasPartialCoordinates) {
+      throw new Error('Latitude and longitude must both be set or both be empty.');
+    }
+
+    validateUrlField('QuakeShield events URL', nextSettings.sources.quakeShield.eventsUrl, nextSettings.sources.quakeShield.enabled);
+    validateUrlField('Official feed URL', nextSettings.sources.official.feedUrl, nextSettings.sources.official.enabled);
+    validateUrlField('Dashboard URL', nextSettings.links.dashboardUrl, false);
+
+    await requestOptionalOriginsIfNeeded(nextSettings);
+    settings = await saveSettings(nextSettings);
+    fields.saveStatus.style.color = '#22c55e';
+    fields.saveStatus.textContent = `Saved ${new Date().toLocaleTimeString()}`;
+  } catch (error) {
+    fields.saveStatus.style.color = '#fca5a5';
+    fields.saveStatus.textContent = String(error?.message || error);
+  }
 }
 
 async function init() {
