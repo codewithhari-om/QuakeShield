@@ -1,0 +1,63 @@
+"""
+QuakeShield Edge AI — Initial seismic signal detector.
+This is a baseline signal-processing demo, not a validated
+earthquake early-warning system.
+"""
+
+import math
+from statistics import mean, pstdev
+
+
+def analyze_signal(samples):
+    """Analyze a list of acceleration samples."""
+    if len(samples) < 10:
+        return {
+            "status": "INSUFFICIENT_DATA",
+            "message": "Provide at least 10 samples."
+        }
+
+    if not all(math.isfinite(x) for x in samples):
+        return {
+            "status": "INVALID_DATA",
+            "message": "Samples must be finite numbers."
+        }
+
+    avg = mean(samples)
+    centered = [x - avg for x in samples]
+    rms = math.sqrt(mean(x * x for x in centered))
+    noise_level = pstdev(centered)
+
+    # Placeholder threshold for demonstration only.
+    threshold = 0.05
+
+    if rms >= threshold:
+        status = "ANOMALY_DETECTED"
+    else:
+        status = "NORMAL"
+
+    return {
+        "status": status,
+        "sample_count": len(samples),
+        "rms": round(rms, 6),
+        "threshold": threshold,
+        "message": (
+            "Unusual signal detected; further validation required."
+            if status == "ANOMALY_DETECTED"
+            else "No anomaly detected by this simple threshold."
+        )
+    }
+
+
+if __name__ == "__main__":
+    # Synthetic test data only; not real earthquake measurements.
+    test_samples = [
+        0.01, -0.02, 0.01, 0.00, -0.01,
+        0.02, -0.01, 0.01, 0.00, -0.02,
+        0.30, -0.25, 0.35, -0.30, 0.28,
+        -0.22, 0.31, -0.27, 0.20, -0.15
+    ]
+
+    result = analyze_signal(test_samples)
+
+    for key, value in result.items():
+        print(f"{key}: {value}")
