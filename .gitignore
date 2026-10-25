@@ -32,3 +32,12 @@ quakeshield_pre_history_*.zip
 # Kotlin and Gradle generated files
 android/.kotlin/
 .gradle/
+
+# Python environments and caches
+signal_processing/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated signal-processing reports
+signal_processing/data/*.csv
