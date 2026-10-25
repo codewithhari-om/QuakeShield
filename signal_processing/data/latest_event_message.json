@@ -1,0 +1,9 @@
+{
+  "station_id": "QS-001",
+  "generated_at_utc": "2026-10-25T12:30:51.639926+00:00",
+  "sampling_rate_hz": 100,
+  "candidate_count": 0,
+  "candidates": [],
+  "message_type": "candidate_analysis",
+  "warning": "Experimental candidate detections only; not a confirmed earthquake alert."
+}
