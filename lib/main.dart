@@ -1,12 +1,15 @@
 import 'dart:math' as math;
+import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
-
-import 'dart:async';
-
+import 'package:http/http.dart' as http;
 import 'package:audioplayers/audioplayers.dart';
 
 import 'app_shell.dart';
+
+import 'package:http/http.dart' as http;
+
 
 void main() {
   runApp(const QuakeShieldApp());
@@ -21,7 +24,7 @@ class QuakeShieldApp extends StatelessWidget {
       title: 'QuakeShield',
       theme: ThemeData.dark(),
       home: const AppShell(),
-    );
+    );_MonitorScreenState
   }
 }
 
@@ -34,20 +37,67 @@ class MonitorScreen extends StatefulWidget {
 class _MonitorScreenState extends State<MonitorScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _waveController;
-  @override
-  void initState() {
-    super.initState();
-    _waveController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
-  }
+    Timer? _alertChecker;
+  bool _alertAlreadyShown = false;
+ @override
+void initState() {
+  super.initState();
 
-  @override
-  void dispose() {
-    _waveController.dispose();
-    super.dispose();
+  _waveController = AnimationController(
+    vsync: this,
+    duration: const Duration(seconds: 3),
+  )..repeat();
+
+  _alertChecker = Timer.periodic(
+    const Duration(seconds: 2),
+    (_) => _checkForAlert(),
+  );
+}bool _checkingBackend = false;
+
+static const String backendUrl = 'http://10.0.2.2:8000';
+
+Future<void> _checkForAlert() async {
+  if (_checkingBackend || !mounted) return;
+
+  _checkingBackend = true;
+
+  try {
+    final response = await http
+        .get(Uri.parse('$backendUrl/latest-event'))
+        .timeout(const Duration(seconds: 3));
+
+    if (!mounted || response.statusCode != 200) return;
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final hasAlert = data['alert'] == true;
+
+    if (!hasAlert) {
+      _alertAlreadyShown = false;
+      return;
+    }
+
+    if (_alertAlreadyShown) return;
+
+    _alertAlreadyShown = true;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const AlertScreen(),
+      ),
+    );
+  } catch (e) {
+    debugPrint('Backend connection error: $e');
+  } finally {
+    _checkingBackend = false;
   }
+}
+ @override
+void dispose() {
+  _alertChecker?.cancel();
+  _waveController.dispose();
+  super.dispose();
+}
 
   @override
   Widget build(BuildContext context) {
@@ -285,12 +335,27 @@ class _MonitorScreenState extends State<MonitorScreen>
                   'TEST SIMULATED ALERT',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AlertScreen()),
-                  );
-                },
+                onPressed: () async {
+  try {
+    final response = await http
+        .get(Uri.parse('$backendUrl/test-alert'))
+        .timeout(const Duration(seconds: 5));
+
+    if (response.statusCode == 200 && mounted) {
+      await _checkForAlert();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Backend did not respond')),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Connection failed: $e')),
+      );
+    }
+  }
+},
               ),
             ),
             const SizedBox(height: 16),
