@@ -1,0 +1,76 @@
+import numpy as np
+from scipy.signal import butter, sosfiltfilt, detrend
+
+
+def remove_baseline_drift(signal_data: np.ndarray) -> np.ndarray:
+
+   
+    data = np.asarray(signal_data, dtype=float)
+
+    if data.ndim not in (1, 2):
+        raise ValueError("Signal must be 1D or 2D.")
+
+    if data.size == 0:
+        raise ValueError("Signal cannot be empty.")
+
+    if not np.all(np.isfinite(data)):
+        raise ValueError("Signal contains NaN or infinite values.")
+
+    return detrend(data, axis=0, type="linear")
+
+
+def butter_bandpass_filter(
+    data: np.ndarray,
+    lowcut: float = 0.5,
+    highcut: float = 15.0,
+    fs: float = 100.0,
+    order: int = 4
+) -> np.ndarray:
+
+  
+    data = np.asarray(data, dtype=float)
+
+    if data.ndim not in (1, 2):
+        raise ValueError("Data must be 1D or 2D.")
+
+    if data.shape[0] == 0:
+        raise ValueError("Data cannot be empty.")
+
+    if not np.all(np.isfinite(data)):
+        raise ValueError("Data contains NaN or infinite values.")
+
+    if fs <= 0:
+        raise ValueError("Sampling frequency must be positive.")
+
+    if not (0 < lowcut < highcut < fs / 2):
+        raise ValueError(
+            "Require 0 < lowcut < highcut < Nyquist frequency."
+        )
+
+    if not isinstance(order, int) or order < 1:
+        raise ValueError("Order must be a positive integer.")
+
+    sos = butter(
+        order,
+        [lowcut, highcut],
+        btype="bandpass",
+        fs=fs,
+        output="sos"
+    )
+
+    return sosfiltfilt(sos, data, axis=0)
+
+
+def preprocess_seismic_signal(signal_data: np.ndarray) -> np.ndarray:
+
+    cleaned = remove_baseline_drift(signal_data)
+
+    filtered = butter_bandpass_filter(
+        cleaned,
+        lowcut=0.5,
+        highcut=15.0,
+        fs=100.0,
+        order=4
+    )
+
+    return filtered
