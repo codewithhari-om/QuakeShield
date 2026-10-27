@@ -16,6 +16,7 @@ def process_waveform(
     sampling_rate,
     low_cutoff=1.0,
     high_cutoff=15.0,
+    predictor=None,
 ):
     """Process a waveform and characterize detected candidates."""
 
