@@ -82,6 +82,7 @@ if predictor is not None and onset_features is not None:
             "score": score["score"],
             "priority": score["priority"],
             "score_reasons": score["reasons"],
+            "ml_result": ml_result,
         })
 
     ranked_candidates.sort(
