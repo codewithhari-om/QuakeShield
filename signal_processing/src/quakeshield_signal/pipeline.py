@@ -48,7 +48,7 @@ def process_waveform(
             start,
             end,
         )
-
+        
         onset_features = None
         try:
             onset_features = extract_onset_features(
@@ -63,7 +63,15 @@ def process_waveform(
             pass
 
         score = score_candidate(feature, quality)
+ml_result = None
 
+if predictor is not None and onset_features is not None:
+    combined_features = {
+        **feature,
+        **onset_features,
+    }
+
+    ml_result = predictor(combined_features)
         quality_results.append(quality)
 
         ranked_candidates.append({
